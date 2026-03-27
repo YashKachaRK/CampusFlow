@@ -1,8 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-// import API from "../API/api";
-
 export default function Login() {
   const navigate = useNavigate();
   const [tab, setTab] = useState("login"); // 'login' | 'signup'
@@ -21,61 +19,41 @@ export default function Login() {
     setError("");
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-
     if (!form.email || !form.password) {
       setError("Please fill in all required fields.");
       return;
     }
-
     if (tab === "signup" && !form.name) {
       setError("Please enter your full name.");
       return;
     }
-
     if (tab === "signup" && form.password !== form.confirmPassword) {
       setError("Passwords do not match.");
       return;
     }
-
     setLoading(true);
-
-    try {
-      let res;
-
-      // if (tab === "signup") {
-      //   // ✅ FIXED REGISTER
-      //   res = await API.post("/auth/register", form);
-      // } else {
-      //   // ✅ FIXED LOGIN
-      //   res = await API.post("/auth/login", {
-      //     email: form.email,
-      //     password: form.password,
-      //   });
-      // }
-
-      const userData = res.data.user;
-
+    // Simulate async auth
+    setTimeout(() => {
+      setLoading(false);
+      const userData = {
+        email: form.email,
+        role: form.role,
+        name: form.name || "User",
+      };
       localStorage.setItem("campusflow_user", JSON.stringify(userData));
 
-      if (userData.role === "admin") {
+      if (form.role === "admin") {
         navigate("/admin/dashboard");
+      } else if (form.role === "faculty") {
+        navigate("/faculty/dashboard");
       } else {
         navigate("/dashboard");
       }
-    } catch (err) {
-      console.error(err);
-
-      if (err.response) {
-        setError(err.response.data.error);
-      } else {
-        setError("Server not responding");
-      }
-    } finally {
-      setLoading(false);
-    }
+    }, 1200);
   };
+
   return (
     <div
       style={{
@@ -311,6 +289,7 @@ export default function Login() {
                 style={{ width: "100%" }}
               >
                 <option value="student">🎓 Student</option>
+                <option value="faculty">👨‍🏫 Faculty</option>
                 <option value="admin">🛡️ Administrator</option>
               </select>
             </div>
