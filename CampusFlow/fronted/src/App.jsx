@@ -8,6 +8,7 @@ import Dashboard from './pages/Dashboard'
 import Tasks from './pages/Tasks'
 import Schedule from './pages/Schedule'
 import Notices from './pages/Notices'
+import Profile from './pages/Profile'
 
 // Admin Pages
 import AdminDashboard from './pages/admin/AdminDashboard'
@@ -28,6 +29,7 @@ export default function App() {
         <Route path="/tasks" element={<Tasks />} />
         <Route path="/schedule" element={<Schedule />} />
         <Route path="/notices" element={<Notices />} />
+        <Route path="/profile" element={<Profile />} />
       </Route>
 
       {/* Admin pages — with admin layout */}

@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom'
 export default function Login() {
   const navigate = useNavigate()
   const [tab, setTab]         = useState('login')   // 'login' | 'signup'
-  const [form, setForm]       = useState({ name: '', email: '', password: '', role: 'student' })
+  const [form, setForm]       = useState({ name: '', email: '', password: '', confirmPassword: '', role: 'student' })
   const [loading, setLoading] = useState(false)
   const [error, setError]     = useState('')
 
@@ -14,6 +14,7 @@ export default function Login() {
     e.preventDefault()
     if (!form.email || !form.password) { setError('Please fill in all required fields.'); return }
     if (tab === 'signup' && !form.name)  { setError('Please enter your full name.'); return }
+    if (tab === 'signup' && form.password !== form.confirmPassword) { setError('Passwords do not match.'); return }
     setLoading(true)
     // Simulate async auth
     setTimeout(() => {
@@ -106,6 +107,14 @@ export default function Login() {
               </div>
               <input id="auth-password" type="password" className="form-input" placeholder="••••••••" value={form.password} onChange={e => set('password', e.target.value)} style={{ width: '100%' }} />
             </div>
+
+            {/* Confirm Password (signup only) */}
+            {tab === 'signup' && (
+              <div className="form-group animate-fade-in" style={{ marginBottom: '1rem' }}>
+                <label className="form-label">Confirm Password</label>
+                <input id="auth-confirm-password" type="password" className="form-input" placeholder="••••••••" value={form.confirmPassword} onChange={e => set('confirmPassword', e.target.value)} style={{ width: '100%' }} />
+              </div>
+            )}
 
             {/* Role */}
             <div className="form-group animate-fade-in" style={{ marginBottom: '1.5rem' }}>

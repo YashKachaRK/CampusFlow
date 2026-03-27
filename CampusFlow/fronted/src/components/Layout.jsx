@@ -7,6 +7,7 @@ const pageMeta = {
   '/tasks':     { title: 'My Tasks',  subtitle: 'Manage and track your assignments' },
   '/schedule':  { title: 'Schedule',  subtitle: 'View and plan upcoming events' },
   '/notices':   { title: 'Notices',   subtitle: 'Stay updated with campus announcements' },
+  '/profile':   { title: 'My Profile',subtitle: 'Manage your personal information' },
 }
 
 export default function Layout() {

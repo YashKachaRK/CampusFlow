@@ -5,6 +5,7 @@ const navItems = [
   { to: '/tasks',     icon: '✅', label: 'Tasks' },
   { to: '/schedule',  icon: '📅', label: 'Schedule' },
   { to: '/notices',   icon: '📢', label: 'Notices' },
+  { to: '/profile',   icon: '👤', label: 'Profile' },
 ]
 
 export default function Sidebar() {
@@ -44,11 +45,17 @@ export default function Sidebar() {
 
       {/* User Footer */}
       <div className="sidebar-footer">
-        <div className="user-chip">
-          <div className="user-avatar">{user.name.split(' ').map(n=>n[0]).join('')}</div>
+        <div 
+          className="user-chip" 
+          onClick={() => navigate('/profile')}
+          style={{ cursor: 'pointer', transition: 'background 0.2s', padding: '0.5rem', borderRadius: 8 }}
+          onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-secondary)'}
+          onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+        >
+          <div className="user-avatar">{user.name ? user.name.split(' ').map(n=>n[0]).join('') : 'U'}</div>
           <div>
             <div className="user-info-name">{user.name}</div>
-            <div className="user-info-role">{user.role.charAt(0).toUpperCase() + user.role.slice(1)} · CampusFlow</div>
+            <div className="user-info-role">{user.role ? user.role.charAt(0).toUpperCase() + user.role.slice(1) : ''} · CampusFlow</div>
           </div>
         </div>
 
