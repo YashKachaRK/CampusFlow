@@ -1,4 +1,4 @@
-  import { useState } from 'react'
+import { useState } from 'react'
 
 const SAMPLE = [
   {
@@ -8,6 +8,8 @@ const SAMPLE = [
     date: '2026-03-26',
     category: 'Academic',
     important: true,
+    fileName: 'MidtermSchedule-2026.pdf',
+    fileUrl: '#'
   },
   {
     id: 2,
@@ -25,14 +27,6 @@ const SAMPLE = [
     category: 'General',
     important: false,
   },
-  {
-    id: 4,
-    title: '🏆 Scholarship Application Deadline',
-    description: 'Last date to apply for the Merit-cum-Means scholarship is April 5. Submit applications to the office with all required documents. No extensions will be granted.',
-    date: '2026-03-22',
-    category: 'Financial',
-    important: true,
-  },
 ]
 
 const CAT_COLOR = {
@@ -43,14 +37,37 @@ const CAT_COLOR = {
 }
 
 export default function Notices() {
-  const [notices]      = useState(SAMPLE)
-  const [filter, setFilter]     = useState('All')
+  const [notices] = useState(SAMPLE)
+  const [filter, setFilter] = useState('All')
+  
+  // Comments mapping by notice ID
+  const [comments, setComments] = useState({
+    1: [{ author: 'Dr. Smith (Faculty)', text: 'Please ensure you check your respective hall numbers properly.', time: '1 hr ago' }]
+  })
+  const [commentInput, setCommentInput] = useState({})
+
+  const userRole = JSON.parse(localStorage.getItem('campusflow_user'))?.role || 'student'
+  const userName = JSON.parse(localStorage.getItem('campusflow_user'))?.name || 'Student'
 
   const categories = ['All', ...new Set(SAMPLE.map(n => n.category))]
   const filtered   = filter === 'All' ? notices : notices.filter(n => n.category === filter)
 
+  const handleCommentSubmit = (id) => {
+    if (!commentInput[id]?.trim()) return
+    const newComment = {
+      author: `${userName} (${userRole})`,
+      text: commentInput[id],
+      time: 'Just now'
+    }
+    setComments(prev => ({
+      ...prev,
+      [id]: [...(prev[id] || []), newComment]
+    }))
+    setCommentInput(prev => ({ ...prev, [id]: '' }))
+  }
+
   return (
-    <div>
+    <div className="animate-fade-in pb-10">
       {/* Category Filters */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '1.25rem', flexWrap: 'wrap' }}>
         {categories.map(c => (
@@ -73,42 +90,71 @@ export default function Notices() {
           <div className="empty-text">No notices in this category.</div>
         </div>
       ) : filtered.map((n, i) => (
-        <div key={n.id} className="notice-card animate-fade-in" style={{ animationDelay: `${i * 0.05}s`, borderLeftColor: CAT_COLOR[n.category] || '#7c3aed' }}>
-          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '0.5rem' }}>
-            <div style={{ flex: 1 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '0.35rem' }}>
-                <span className="notice-title">{n.title}</span>
-                {n.important && <span className="badge badge-high" style={{ fontSize: '0.67rem' }}>⚠ Important</span>}
-                <span className="badge" style={{ background: `${CAT_COLOR[n.category]}20`, color: CAT_COLOR[n.category], border: `1px solid ${CAT_COLOR[n.category]}40`, fontSize: '0.67rem' }}>
-                  {n.category}
-                </span>
-                <span style={{ fontSize: '0.67rem', color: 'var(--text-muted)', fontWeight: 600 }}>🏷 Official Notice</span>
-              </div>
-              <div className="notice-desc">{n.description}</div>
+        <div key={n.id} className="notice-card animate-fade-in" style={{ animationDelay: `${i * 0.05}s`, borderLeftColor: CAT_COLOR[n.category] || '#7c3aed', marginBottom: '1.5rem', display: 'block' }}>
+          
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '0.5rem' }}>
+            <span className="notice-title" style={{ fontSize: '1.25rem' }}>{n.title}</span>
+            {n.important && <span className="badge badge-high" style={{ fontSize: '0.7rem' }}>⚠ Important</span>}
+            <span className="badge" style={{ background: `${CAT_COLOR[n.category]}20`, color: CAT_COLOR[n.category], border: `1px solid ${CAT_COLOR[n.category]}40`, fontSize: '0.7rem' }}>
+              {n.category}
+            </span>
+          </div>
 
-              {/* Attachment Display */}
-              {n.attachment && (
-                <div style={{ marginTop: '0.85rem', padding: '0.75rem', background: 'var(--bg-secondary)', borderRadius: 12, border: '1px solid var(--border)', display: 'inline-flex', alignItems: 'center', gap: '0.85rem', animation: 'fadeInUp 0.3s ease' }}>
-                  {n.attachment.type === 'image' ? (
-                    <img src={n.attachment.data} alt="Attachment" style={{ width: 100, height: 100, borderRadius: 8, objectFit: 'cover', cursor: 'zoom-in', transition: 'transform 0.2s' }} onClick={() => window.open(n.attachment.data)} />
-                  ) : (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
-                      <span style={{ fontSize: '1.8rem' }}>📄</span>
-                      <div style={{ display: 'flex', flexDirection: 'column' }}>
-                        <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-primary)' }}>{n.attachment.name}</span>
-                        <a href={n.attachment.data} download={n.attachment.name} style={{ fontSize: '0.72rem', color: '#60a5fa', fontWeight: 600, textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.2rem', marginTop: '0.2rem' }}>
-                          📥 Download Document (PDF)
-                        </a>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
+          <p className="notice-desc" style={{ fontSize: '0.95rem', lineHeight: 1.6, marginBottom: '1rem', color: 'var(--text-primary)' }}>
+            {n.description}
+          </p>
 
-              <div className="notice-meta">
-                <span>📅 Published on {n.date} · Campus Administration</span>
+          {/* Attachment Download */}
+          {n.fileName && (
+            <div style={{ padding: '0.75rem 1rem', background: 'rgba(124,58,237,0.05)', borderRadius: 12, border: '1px solid rgba(124,58,237,0.2)', display: 'inline-flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
+              <span style={{ fontSize: '1.5rem' }}>📄</span>
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--accent)' }}>{n.fileName}</span>
+                <a href={n.fileUrl || '#'} download={n.fileName} style={{ fontSize: '0.75rem', color: '#60a5fa', fontWeight: 600, textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.2rem', marginTop: '0.2rem' }}>
+                  📥 Download Document
+                </a>
               </div>
             </div>
+          )}
+
+          <div className="notice-meta" style={{ marginBottom: '1rem', paddingBottom: '1rem', borderBottom: '1px solid var(--border)' }}>
+            <span>📅 Published on {n.date} · Campus Administration</span>
+          </div>
+
+          {/* Discussion / Comments Section */}
+          <div className="comments-section" style={{ background: 'var(--bg-card)' }}>
+             <h4 style={{ margin: '0 0 1rem 0', fontSize: '0.9rem', color: 'var(--text-muted)' }}>💬 Discussion ({comments[n.id]?.length || 0})</h4>
+             
+             {/* List comments */}
+             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '1rem' }}>
+               {(comments[n.id] || []).map((c, idx) => (
+                 <div key={idx} style={{ padding: '0.75rem', background: 'var(--bg-secondary)', borderRadius: 8, fontSize: '0.85rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.3rem' }}>
+                      <strong style={{ color: c.author.includes('Faculty') ? '#10b981' : 'var(--accent)' }}>{c.author}</strong>
+                      <span style={{ color: 'var(--text-muted)', fontSize: '0.75rem' }}>{c.time}</span>
+                    </div>
+                    <div style={{ color: 'var(--text-primary)', lineHeight: 1.4 }}>{c.text}</div>
+                 </div>
+               ))}
+               {(!comments[n.id] || comments[n.id].length === 0) && (
+                 <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>No comments yet. Be the first to ask a question!</div>
+               )}
+             </div>
+
+             {/* Add Comment Input */}
+             <div style={{ display: 'flex', gap: '0.5rem' }}>
+               <input 
+                 className="form-input" 
+                 placeholder={`Reply as ${userName}...`}
+                 value={commentInput[n.id] || ''}
+                 onChange={e => setCommentInput({...commentInput, [n.id]: e.target.value})}
+                 onKeyDown={e => e.key === 'Enter' && handleCommentSubmit(n.id)}
+                 style={{ flex: 1, padding: '0.5rem 0.75rem', fontSize: '0.85rem' }} 
+               />
+               <button className="btn btn-primary" style={{ padding: '0.4rem 1rem', fontSize: '0.85rem' }} onClick={() => handleCommentSubmit(n.id)}>
+                 Post
+               </button>
+             </div>
           </div>
         </div>
       ))}

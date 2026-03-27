@@ -1,8 +1,19 @@
 import { useState } from 'react'
+import FullCalendar from '@fullcalendar/react'
+import dayGridPlugin from '@fullcalendar/daygrid'
+import timeGridPlugin from '@fullcalendar/timegrid'
+import interactionPlugin from '@fullcalendar/interaction'
+
+const EVENT_COLORS = {
+  Exam:     '#ef4444',
+  Workshop: '#7c3aed',
+  Lecture:  '#3b82f6',
+  Meeting:  '#f59e0b',
+}
 
 const INITIAL_EVENTS = [
-  { id: 1, title: 'Data Structures Mid-Term', date: '2026-04-10', time: '10:00 AM', type: 'Exam', location: 'Hall B' },
-  { id: 2, title: 'React Workshop', date: '2026-04-15', time: '02:00 PM', type: 'Workshop', location: 'Lab 1' },
+  { id: '1', title: 'Data Structures Mid-Term', start: '2026-04-10T10:00:00', end: '2026-04-10T12:00:00', color: EVENT_COLORS.Exam, extendedProps: { type: 'Exam', location: 'Hall B' } },
+  { id: '2', title: 'React Workshop', start: '2026-04-15T14:00:00', end: '2026-04-15T16:00:00', color: EVENT_COLORS.Workshop, extendedProps: { type: 'Workshop', location: 'Lab 1' } },
 ]
 
 export default function FacultyEvents() {
@@ -10,20 +21,37 @@ export default function FacultyEvents() {
   const [showForm, setShowForm] = useState(false)
   const [form, setForm] = useState({ title: '', date: '', time: '', type: 'Exam', location: '' })
 
+  const handleDateClick = (arg) => {
+    setForm({ ...form, date: arg.dateStr.split('T')[0] })
+    setShowForm(true)
+  }
+
   const handleAdd = () => {
     if (!form.title || !form.date) return
-    setEvents([...events, { id: Date.now(), ...form }])
+    const startObj = form.time ? `${form.date}T${form.time}` : form.date
+    const newEv = {
+      id: Date.now().toString(),
+      title: form.title,
+      start: startObj,
+      allDay: !form.time,
+      color: EVENT_COLORS[form.type] || EVENT_COLORS.Lecture,
+      extendedProps: { type: form.type, location: form.location }
+    }
+    setEvents([...events, newEv])
     setForm({ title: '', date: '', time: '', type: 'Exam', location: '' })
     setShowForm(false)
   }
 
-  const handleDelete = (id) => {
-    setEvents(events.filter(e => e.id !== id))
+  const handleEventClick = (info) => {
+    if (window.confirm(`Event: ${info.event.title}\nDo you want to remove this event?`)) {
+       setEvents(events.filter(e => e.id !== info.event.id))
+    }
   }
 
   return (
-    <div className="animate-fade-in">
-      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1.25rem' }}>
+    <div className="animate-fade-in pb-10">
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
+        <h2 style={{ margin: 0, color: '#10b981' }}>Event Management</h2>
         <button className="btn" style={{ background: '#10b981', color: '#fff', border: 'none' }} onClick={() => setShowForm(!showForm)}>
           {showForm ? '✕ Cancel' : '＋ Schedule Event'}
         </button>
@@ -35,7 +63,7 @@ export default function FacultyEvents() {
           <div className="form-row">
             <div className="form-group" style={{ flex: 2 }}>
               <label className="form-label">Title *</label>
-              <input className="form-input" placeholder="e.g. Final Exam" value={form.title} onChange={e => setForm({...form, title: e.target.value})} />
+              <input className="form-input" placeholder="e.g. Final Exam" value={form.title} onChange={e => setForm({...form, title: e.target.value})} autoFocus />
             </div>
             <div className="form-group">
               <label className="form-label">Type</label>
@@ -65,27 +93,75 @@ export default function FacultyEvents() {
         </div>
       )}
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1rem' }}>
-        {events.map((e, i) => (
-          <div key={e.id} className="event-item" style={{ border: '1px solid var(--border)', background: 'var(--bg-card)' }}>
-             <div className="event-date-badge" style={{ background: '#10b98120', borderColor: '#10b98150' }}>
-               <div className="event-day" style={{ color: '#10b981' }}>{new Date(e.date).getDate()}</div>
-               <div className="event-month">{new Date(e.date).toLocaleString('en', { month: 'short' })}</div>
-             </div>
-             <div style={{ flex: 1 }}>
-               <div className="event-title">{e.title}</div>
-               <div className="event-time" style={{ fontSize: '0.8rem', marginTop: '0.2rem' }}>
-                 {e.time && <span>🕐 {e.time}</span>}
-                 {e.location && <span style={{ marginLeft: '0.75rem' }}>📍 {e.location}</span>}
-               </div>
-               <div style={{ marginTop: '0.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                 <span className="badge" style={{ background: '#10b98120', color: '#10b981', border: '1px solid #10b98140' }}>{e.type}</span>
-                 <button className="btn btn-sm btn-danger" style={{ fontSize: '0.7rem', padding: '0.2rem 0.5rem' }} onClick={() => handleDelete(e.id)}>Remove</button>
-               </div>
-             </div>
-          </div>
-        ))}
+      {/* Calendar Wrapper */}
+      <div style={{ background: 'var(--bg-card)', padding: '1rem', borderRadius: 16, border: '1px solid var(--border)', boxShadow: '0 10px 30px rgba(0,0,0,0.1)' }}>
+        <FullCalendar
+          plugins={[ dayGridPlugin, timeGridPlugin, interactionPlugin ]}
+          initialView="dayGridMonth"
+          headerToolbar={{
+            left: 'prev,next today',
+            center: 'title',
+            right: 'dayGridMonth,timeGridWeek'
+          }}
+          events={events}
+          dateClick={handleDateClick}
+          eventClick={handleEventClick}
+          height="700px"
+          nowIndicator={true}
+          slotMinTime="08:00:00"
+          slotMaxTime="20:00:00"
+          weekends={false}
+        />
       </div>
+
+      <style>{`
+        .fc-theme-standard .fc-scrollgrid,
+        .fc-theme-standard td, .fc-theme-standard th { 
+          border-color: var(--border) !important; 
+        }
+        .fc-col-header-cell-cushion, .fc-daygrid-day-number { 
+          color: var(--text-primary) !important; 
+          text-decoration: none !important; 
+          padding: 8px !important;
+        }
+        .fc-event { 
+          cursor: pointer; 
+          border: none !important; 
+          padding: 3px 6px; 
+          border-radius: 6px; 
+          box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .fc-event:hover {
+          filter: brightness(1.1);
+        }
+        .fc-toolbar-title { 
+          font-weight: 800; 
+          color: var(--text-primary); 
+          font-size: 1.5rem !important;
+        }
+        .fc-button-primary { 
+          background: var(--bg-secondary) !important; 
+          border: 1px solid var(--border) !important; 
+          color: var(--text-primary) !important;
+          text-transform: capitalize; 
+          font-weight: 600 !important;
+          border-radius: 8px !important;
+          transition: all 0.2s;
+        }
+        .fc-button-primary:hover {
+          background: rgba(16, 185, 129, 0.1) !important;
+          color: #10b981 !important;
+          border-color: rgba(16, 185, 129, 0.3) !important;
+        }
+        .fc-button-primary:disabled { 
+          opacity: 0.5; 
+        }
+        .fc-button-active {
+          background: #10b981 !important;
+          color: white !important;
+          border-color: #10b981 !important;
+        }
+      `}</style>
     </div>
   )
 }
