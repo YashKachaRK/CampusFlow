@@ -14,7 +14,10 @@ const noticesRoutes = require('./routes/noticesRoutes');
 app.use("/api/auth", authRoutes);
 app.use("/api/tasks", taskRoutes);
 app.use('/api/notices', noticesRoutes);
-
+app.use('/api/events', require('./routes/eventRoutes'));
+app.use('/api/timetable', require('./routes/timetableRoutes'));
+app.use('/api/students', require('./routes/studentRoutes'));
+app.use('/api/dashboard', require('./routes/dashboardRoutes'));
 
 app.listen(5000, () => {
   console.log("🚀 Server running on port 5000");

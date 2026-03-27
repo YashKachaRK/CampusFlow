@@ -1,10 +1,9 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import FullCalendar from '@fullcalendar/react'
 import dayGridPlugin from '@fullcalendar/daygrid'
 import timeGridPlugin from '@fullcalendar/timegrid'
 import interactionPlugin from '@fullcalendar/interaction'
 
-// Convert our mock data into strict FullCalendar event objects
 const EVENT_COLORS = {
   Workshop: '#7c3aed',
   Exam: '#ef4444',
@@ -13,26 +12,27 @@ const EVENT_COLORS = {
   Personal: '#f59e0b',
 }
 
-// FullCalendar uses ISO8601 strings
-const SAMPLE_EVENTS = [
-  { id: '1', title: 'Workshop: React Basics', start: '2026-03-28T10:00:00', end: '2026-03-28T12:00:00', color: EVENT_COLORS.Workshop, extendedProps: { type: 'Workshop', location: 'Lab 3B', isOfficial: true } },
-  { id: '2', title: 'Mid-Semester Exam', start: '2026-03-30T09:00:00', end: '2026-03-30T12:00:00', color: EVENT_COLORS.Exam, extendedProps: { type: 'Exam', location: 'Hall A', isOfficial: true } },
-  { id: '3', title: 'Project Submission', start: '2026-04-02T17:00:00', color: EVENT_COLORS.Academic, allDay: false, extendedProps: { type: 'Academic', location: 'Online', isOfficial: true } },
-  { id: '4', title: 'Sports Day', start: '2026-04-05', allDay: true, color: EVENT_COLORS.Event, extendedProps: { type: 'Event', location: 'Ground', isOfficial: true } },
-]
-
-// To build a weekly schedule, we can add recurring events 
-const WEEKLY_CLASSES = [
-  { id: 'c1', title: 'Database Systems', daysOfWeek: [1, 4], startTime: '10:00:00', endTime: '11:00:00', color: '#8b5cf6', extendedProps: { isOfficial: true } },
-  { id: 'c2', title: 'Operating Systems', daysOfWeek: [2], startTime: '11:00:00', endTime: '12:30:00', color: '#6366f1', extendedProps: { isOfficial: true } },
-  { id: 'c3', title: 'Software Eng', daysOfWeek: [3], startTime: '14:00:00', endTime: '15:30:00', color: '#14b8a6', extendedProps: { isOfficial: true } },
-  { id: 'c4', title: 'Project Mentoring', daysOfWeek: [5], startTime: '13:00:00', endTime: '14:00:00', color: '#f59e0b', extendedProps: { isOfficial: true } },
-]
+const API_URL = 'http://localhost:5000/api/events';
 
 export default function Schedule() {
-  const [events, setEvents] = useState([...SAMPLE_EVENTS, ...WEEKLY_CLASSES])
+  const [events, setEvents] = useState([])
   const [showForm, setShowForm] = useState(false)
   const [form, setForm] = useState({ title: '', date: '', time: '', location: '', type: 'Personal' })
+
+  // 1. Fetch all events (Faculty + Personal) on component mount
+  useEffect(() => {
+    fetchEvents();
+  }, []);
+
+  const fetchEvents = async () => {
+    try {
+      const response = await fetch(API_URL);
+      const data = await response.json();
+      setEvents(data);
+    } catch (error) {
+      console.error("Error fetching events:", error);
+    }
+  };
 
   const handleDateClick = (arg) => {
     // Fill in date and open form when user clicks empty day
@@ -40,28 +40,56 @@ export default function Schedule() {
     setShowForm(true)
   }
 
-  const addEvent = () => {
+  // 2. Add a new Personal Event
+  const addEvent = async () => {
     if (!form.title.trim() || !form.date) return
     const startObj = form.time ? `${form.date}T${form.time}` : form.date
-    const newEv = {
-      id: Date.now().toString(),
+    
+    const newEvPayload = {
       title: form.title,
       start: startObj,
       allDay: !form.time,
       color: EVENT_COLORS[form.type] || EVENT_COLORS.Personal,
-      extendedProps: { type: form.type, location: form.location, isOfficial: false }
+      extendedProps: { 
+        type: form.type, 
+        location: form.location, 
+        isOfficial: false // Explicitly mark student events as unofficial
+      }
     }
-    setEvents(prev => [...prev, newEv])
-    setForm({ title: '', date: '', time: '', location: '', type: 'Personal' })
-    setShowForm(false)
+
+    try {
+      const response = await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newEvPayload)
+      });
+      
+      const savedEvent = await response.json();
+      setEvents(prev => [...prev, savedEvent]);
+      
+      setForm({ title: '', date: '', time: '', location: '', type: 'Personal' })
+      setShowForm(false)
+    } catch (error) {
+      console.error("Error saving event:", error);
+    }
   }
 
-  const handleEventClick = (info) => {
+  // 3. Delete an event (Only if it is a personal event)
+  const handleEventClick = async (info) => {
+    // We assume an event is official unless explicitly marked isOfficial: false
+    const isOfficial = info.event.extendedProps?.isOfficial !== false;
+
+    if (isOfficial) {
+      alert("Cannot delete official academic schedules. Contact administration.");
+      return;
+    }
+
     if (window.confirm(`Event: ${info.event.title}\nDo you want to delete this event?`)) {
-      if (!info.event.extendedProps.isOfficial) {
-        setEvents(prev => prev.filter(e => e.id !== info.event.id))
-      } else {
-        alert("Cannot delete official academic schedules. Contact administration.")
+      try {
+        await fetch(`${API_URL}/${info.event.id}`, { method: 'DELETE' });
+        setEvents(prev => prev.filter(e => e.id !== info.event.id));
+      } catch (error) {
+        console.error("Error deleting event:", error);
       }
     }
   }
@@ -76,17 +104,18 @@ export default function Schedule() {
       </div>
 
       {showForm && (
-        <div className="form-panel animate-fade-in" style={{ borderColor: 'var(--accent)', marginBottom: '1.5rem' }}>
+        <div className="form-panel animate-fade-in" style={{ borderColor: 'var(--accent)', marginBottom: '1.5rem', padding: '1rem', border: '1px solid', borderRadius: '8px' }}>
           <div style={{ fontWeight: 700, marginBottom: '0.9rem', color: 'var(--accent)' }}>📔 New Personal Event</div>
-          <div className="form-row">
+          
+          <div className="form-row" style={{ display: 'flex', gap: '1rem' }}>
             <div className="form-group" style={{ flex: 2 }}>
-              <label className="form-label">Event Title *</label>
-              <input className="form-input" placeholder="e.g. Study Group"
+              <label className="form-label" style={{ display: 'block', marginBottom: '0.5rem' }}>Event Title *</label>
+              <input className="form-input" style={{ width: '100%', padding: '0.5rem', borderRadius: '4px', border: '1px solid var(--border)' }} placeholder="e.g. Study Group"
                 value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} autoFocus />
             </div>
-            <div className="form-group">
-              <label className="form-label">Type</label>
-              <select className="form-select" value={form.type} onChange={e => setForm(f => ({ ...f, type: e.target.value }))}>
+            <div className="form-group" style={{ flex: 1 }}>
+              <label className="form-label" style={{ display: 'block', marginBottom: '0.5rem' }}>Type</label>
+              <select className="form-select" style={{ width: '100%', padding: '0.5rem', borderRadius: '4px', border: '1px solid var(--border)' }} value={form.type} onChange={e => setForm(f => ({ ...f, type: e.target.value }))}>
                 <option>Personal</option>
                 <option>Workshop</option>
                 <option>Academic</option>
@@ -94,24 +123,28 @@ export default function Schedule() {
               </select>
             </div>
           </div>
-          <div className="form-row" style={{ marginTop: '0.75rem' }}>
-            <div className="form-group">
-              <label className="form-label">Date *</label>
-              <input type="date" className="form-input" value={form.date}
+          
+          <div className="form-row" style={{ display: 'flex', gap: '1rem', marginTop: '0.75rem' }}>
+            <div className="form-group" style={{ flex: 1 }}>
+              <label className="form-label" style={{ display: 'block', marginBottom: '0.5rem' }}>Date *</label>
+              <input type="date" className="form-input" style={{ width: '100%', padding: '0.5rem', borderRadius: '4px', border: '1px solid var(--border)' }} value={form.date}
                 onChange={e => setForm(f => ({ ...f, date: e.target.value }))} />
             </div>
-            <div className="form-group">
-              <label className="form-label">Time</label>
-              <input type="time" className="form-input" value={form.time}
+            <div className="form-group" style={{ flex: 1 }}>
+              <label className="form-label" style={{ display: 'block', marginBottom: '0.5rem' }}>Time</label>
+              <input type="time" className="form-input" style={{ width: '100%', padding: '0.5rem', borderRadius: '4px', border: '1px solid var(--border)' }} value={form.time}
                 onChange={e => setForm(f => ({ ...f, time: e.target.value }))} />
             </div>
-            <div className="form-group">
-              <label className="form-label">Location</label>
-              <input className="form-input" placeholder="e.g. Library"
+            <div className="form-group" style={{ flex: 1 }}>
+              <label className="form-label" style={{ display: 'block', marginBottom: '0.5rem' }}>Location</label>
+              <input className="form-input" style={{ width: '100%', padding: '0.5rem', borderRadius: '4px', border: '1px solid var(--border)' }} placeholder="e.g. Library"
                 value={form.location} onChange={e => setForm(f => ({ ...f, location: e.target.value }))} />
             </div>
           </div>
-          <button className="btn btn-primary" style={{ marginTop: '1rem', width: '100%' }} onClick={addEvent}>✔ Save Event</button>
+          
+          <button className="btn btn-primary" style={{ marginTop: '1rem', width: '100%', padding: '0.75rem', borderRadius: '8px', background: 'var(--accent)', color: 'white', border: 'none', cursor: 'pointer', fontWeight: 'bold' }} onClick={addEvent}>
+            ✔ Save Event
+          </button>
         </div>
       )}
 

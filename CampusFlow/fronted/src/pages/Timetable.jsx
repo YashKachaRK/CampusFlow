@@ -3,45 +3,42 @@ import { useState, useEffect } from 'react'
 const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']
 const TIME_SLOTS = ['09:00 AM', '10:00 AM', '11:00 AM', '12:00 PM', '01:00 PM', '02:00 PM', '03:00 PM', '04:00 PM']
 
-// Default fallback data if faculty hasn't updated anything yet
-const INITIAL_TIMETABLE = {
-  'Monday-10:00 AM': { subject: 'Database Systems', room: 'Lab 2' },
-  'Tuesday-11:00 AM': { subject: 'Operating Systems', room: 'Room 401' },
-  'Wednesday-02:00 PM': { subject: 'Software Eng', room: 'Room 304' },
-  'Thursday-09:00 AM': { subject: 'Database Systems', room: 'Lab 2' },
-  'Friday-01:00 PM': { subject: 'Project Mentoring', room: 'Staff Room' },
+const API_URL = 'http://localhost:5000/api/timetable';
+
+// Helper: Converts "13:00:00" from database to "01:00 PM" for the frontend grid
+const convertTo12Hour = (time24h) => {
+  let [hours, minutes] = time24h.split(':');
+  hours = parseInt(hours, 10);
+  const modifier = hours >= 12 ? 'PM' : 'AM';
+  hours = hours % 12 || 12;
+  return `${hours.toString().padStart(2, '0')}:${minutes} ${modifier}`;
 }
 
 export default function Timetable() {
-  const [timetable, setTimetable] = useState(() => {
-    const saved = localStorage.getItem('campusflow_timetable')
-    return saved ? JSON.parse(saved) : INITIAL_TIMETABLE
-  })
+  const [timetable, setTimetable] = useState({})
 
-  // Poll for updates in case the faculty is changing it in another tab/window
-  // (In a real app, this would be a WebSocket or API subscription)
+  // Fetch the latest timetable from the database when the component loads
   useEffect(() => {
-    const handleStorage = () => {
-      const saved = localStorage.getItem('campusflow_timetable')
-      if (saved) {
-        setTimetable(JSON.parse(saved))
-      }
-    }
-    window.addEventListener('storage', handleStorage)
-    
-    // Safety check loop for same-tab mock environment
-    const interval = setInterval(() => {
-       const saved = localStorage.getItem('campusflow_timetable')
-       if (saved && saved !== JSON.stringify(timetable)) {
-         setTimetable(JSON.parse(saved))
-       }
-    }, 2000)
+    fetchTimetable();
+  }, []);
 
-    return () => {
-       window.removeEventListener('storage', handleStorage)
-       clearInterval(interval)
+  const fetchTimetable = async () => {
+    try {
+      const response = await fetch(API_URL);
+      const data = await response.json();
+      
+      // Map the array of DB records into a dictionary object for the grid
+      const formattedTimetable = {};
+      data.forEach(slot => {
+        const time12h = convertTo12Hour(slot.start_time);
+        formattedTimetable[`${slot.day}-${time12h}`] = slot;
+      });
+      
+      setTimetable(formattedTimetable);
+    } catch (error) {
+      console.error("Error fetching timetable:", error);
     }
-  }, [timetable])
+  }
 
   return (
     <div className="animate-fade-in pb-10">

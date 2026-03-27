@@ -1,50 +1,134 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']
 const TIME_SLOTS = ['09:00 AM', '10:00 AM', '11:00 AM', '12:00 PM', '01:00 PM', '02:00 PM', '03:00 PM', '04:00 PM']
 
-// Pre-fill some data
-const INITIAL_TIMETABLE = {
-  'Monday-10:00 AM': { subject: 'Database Systems', room: 'Lab 2' },
-  'Tuesday-11:00 AM': { subject: 'Operating Systems', room: 'Room 401' },
-  'Wednesday-02:00 PM': { subject: 'Software Eng', room: 'Room 304' },
-  'Thursday-09:00 AM': { subject: 'Database Systems', room: 'Lab 2' },
-  'Friday-01:00 PM': { subject: 'Project Mentoring', room: 'Staff Room' },
+const API_URL = 'http://localhost:5000/api/timetable';
+
+// Helper: Converts "01:00 PM" to "13:00:00" for the database
+const convertTo24Hour = (time12h) => {
+  const [time, modifier] = time12h.split(' ');
+  let [hours, minutes] = time.split(':');
+  if (hours === '12') hours = '00';
+  if (modifier === 'PM') hours = (parseInt(hours, 10) + 12).toString();
+  return `${hours.padStart(2, '0')}:${minutes}:00`;
+}
+
+// Helper: Converts "13:00:00" to "01:00 PM" for the frontend
+const convertTo12Hour = (time24h) => {
+  let [hours, minutes] = time24h.split(':');
+  hours = parseInt(hours, 10);
+  const modifier = hours >= 12 ? 'PM' : 'AM';
+  hours = hours % 12 || 12;
+  return `${hours.toString().padStart(2, '0')}:${minutes} ${modifier}`;
 }
 
 export default function FacultyTimetable() {
-  const [timetable, setTimetable] = useState(() => {
-    const saved = localStorage.getItem('campusflow_timetable')
-    return saved ? JSON.parse(saved) : INITIAL_TIMETABLE
-  })
-  const [editing, setEditing] = useState(null) // "Day-Time"
+  const [timetable, setTimetable] = useState({})
+  const [editing, setEditing] = useState(null) // "Day-Time" format
   const [form, setForm] = useState({ subject: '', room: '' })
+
+  // 1. Fetch data from DB on load
+  useEffect(() => {
+    fetchTimetable();
+  }, []);
+
+  const fetchTimetable = async () => {
+    try {
+      const response = await fetch(API_URL);
+      const data = await response.json();
+      
+      // Map array of DB records into a dictionary object for the grid
+      const formattedTimetable = {};
+      data.forEach(slot => {
+        const time12h = convertTo12Hour(slot.start_time);
+        formattedTimetable[`${slot.day}-${time12h}`] = slot;
+      });
+      
+      setTimetable(formattedTimetable);
+    } catch (error) {
+      console.error("Error fetching timetable:", error);
+    }
+  }
 
   const handleCellClick = (day, time) => {
     const key = `${day}-${time}`
     setEditing(key)
     if (timetable[key]) {
-      setForm({ subject: timetable[key].subject, room: timetable[key].room })
+      setForm({ subject: timetable[key].subject, room: timetable[key].room || '' })
     } else {
       setForm({ subject: '', room: '' })
     }
   }
 
-  const handleSave = () => {
-    if (!editing) return
-    let updated = { ...timetable }
-    if (!form.subject) {
-      // Clear cell if saving empty
-      delete updated[editing]
-    } else {
-      updated = {
-        ...timetable,
-        [editing]: { ...form }
+  // 2. Explicit Delete Function
+  const handleDelete = async () => {
+    if (!editing) return;
+    const existingSlot = timetable[editing];
+
+    if (existingSlot?.id) {
+      if (!window.confirm(`Are you sure you want to delete ${existingSlot.subject}?`)) return;
+
+      try {
+        await fetch(`${API_URL}/${existingSlot.id}`, { method: 'DELETE' });
+        const updated = { ...timetable };
+        delete updated[editing];
+        setTimetable(updated);
+      } catch (error) {
+        console.error("Error deleting slot:", error);
       }
     }
-    setTimetable(updated)
-    localStorage.setItem('campusflow_timetable', JSON.stringify(updated))
-    setEditing(null)
+
+    setEditing(null);
+    setForm({ subject: '', room: '' });
+  };
+
+  // 3. Save or Update slots
+  const handleSave = async () => {
+    if (!editing) return
+    const [day, timeStr] = editing.split('-');
+    const existingSlot = timetable[editing];
+    
+    // Calculate start and end times in 24h format
+    const start_time = convertTo24Hour(timeStr);
+    const startHour = parseInt(start_time.split(':')[0], 10);
+    const end_time = `${(startHour + 1).toString().padStart(2, '0')}:00:00`; 
+
+    try {
+      if (!form.subject) {
+        // Fallback: If user clears the subject field and hits save, treat it as a delete
+        handleDelete();
+        return;
+      } 
+      
+      const payload = { day, start_time, end_time, subject: form.subject, room: form.room };
+
+      if (existingSlot?.id) {
+        // UPDATE existing slot
+        const res = await fetch(`${API_URL}/${existingSlot.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const updatedSlot = await res.json();
+        setTimetable({ ...timetable, [editing]: updatedSlot });
+      } else {
+        // CREATE new slot
+        const res = await fetch(API_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const newSlot = await res.json();
+        setTimetable({ ...timetable, [editing]: newSlot });
+      }
+      
+    } catch (error) {
+      console.error("Error saving slot:", error);
+    }
+    
+    setEditing(null);
+    setForm({ subject: '', room: '' });
   }
 
   return (
@@ -58,11 +142,11 @@ export default function FacultyTimetable() {
       {editing && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', zIndex: 999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <div style={{ background: 'var(--bg-card)', padding: '2rem', borderRadius: 12, width: '100%', maxWidth: 400, border: '1px solid var(--border)', boxShadow: '0 10px 30px rgba(0,0,0,0.5)' }}>
-            <h3 style={{ marginTop: 0, color: '#10b981' }}>Edit Slot</h3>
+            <h3 style={{ marginTop: 0, color: '#10b981' }}>{timetable[editing] ? 'Update Slot' : 'Add New Slot'}</h3>
             <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>{editing.split('-').join(' at ')}</p>
 
             <div className="form-group" style={{ marginTop: '1rem' }}>
-              <label className="form-label">Subject</label>
+              <label className="form-label">Subject *</label>
               <input className="form-input" placeholder="e.g. Machine Learning" value={form.subject} onChange={e => setForm({ ...form, subject: e.target.value })} autoFocus />
             </div>
 
@@ -72,8 +156,20 @@ export default function FacultyTimetable() {
             </div>
 
             <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1.5rem' }}>
-              <button className="btn" style={{ flex: 1, background: '#10b981', color: '#fff', border: 'none' }} onClick={handleSave}>Save</button>
-              <button className="btn" style={{ flex: 1 }} onClick={() => setEditing(null)}>Cancel</button>
+              <button className="btn" style={{ flex: 1, background: '#10b981', color: '#fff', border: 'none', padding: '0.6rem', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }} onClick={handleSave}>
+                Save
+              </button>
+              
+              {/* Only show Delete button if the slot already exists in the database */}
+              {timetable[editing] && (
+                <button className="btn" style={{ flex: 1, background: '#ef4444', color: '#fff', border: 'none', padding: '0.6rem', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }} onClick={handleDelete}>
+                  Delete
+                </button>
+              )}
+              
+              <button className="btn" style={{ flex: 1, background: 'var(--bg-secondary)', border: '1px solid var(--border)', padding: '0.6rem', borderRadius: '6px', cursor: 'pointer' }} onClick={() => setEditing(null)}>
+                Cancel
+              </button>
             </div>
           </div>
         </div>
