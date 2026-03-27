@@ -73,7 +73,7 @@ export default function Landing() {
           </h1>
 
           <p style={{ fontSize: '1.1rem', color: 'var(--text-secondary)', maxWidth: 560, margin: '0 auto 2.5rem', lineHeight: 1.7 }}>
-            CampusFlow helps students stay on top of tasks, schedule events, and never miss a notice — with a beautiful, distraction-free interface.
+            CampusFlow helps students stay on topof  tasks, schedule events, and never miss a notice — with a beautiful, distraction-free interface.
           </p>
 
           <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>

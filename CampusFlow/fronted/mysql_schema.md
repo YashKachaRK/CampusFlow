@@ -81,7 +81,7 @@ CREATE TABLE notices (
     FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL
 );
 ```
-
+cd 
 ### Note on implementation:
 If you use this MySQL schema:
 1. You will need to install the `mysql2` or `pg` (if you pivot to PostgreSQL) driver in your Node wrapper instead of `mongoose`.
