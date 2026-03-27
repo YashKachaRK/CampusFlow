@@ -1,15 +1,15 @@
 import { NavLink, useNavigate } from 'react-router-dom'
 
-const navItems = [
-  { to: '/dashboard', icon: '🏠', label: 'Dashboard' },
-  { to: '/tasks',     icon: '✅', label: 'Tasks' },
-  { to: '/schedule',  icon: '📅', label: 'Schedule' },
-  { to: '/notices',   icon: '📢', label: 'Notices' },
+const adminNavItems = [
+  { to: '/admin/dashboard', icon: '📊', label: 'Admin Dashboard' },
+  { to: '/admin/notices',   icon: '📢', label: 'Manage Notices' },
+  { to: '/admin/events',    icon: '📅', label: 'Manage Events' },
+  { to: '/admin/users',     icon: '👥', label: 'Manage Students' },
 ]
 
-export default function Sidebar() {
+export default function AdminSidebar() {
   const navigate = useNavigate()
-  const user = JSON.parse(localStorage.getItem('campusflow_user')) || { name: 'Yash Kacha', role: 'Student' }
+  const user = JSON.parse(localStorage.getItem('campusflow_user')) || { name: 'Admin', role: 'admin' }
 
   const handleLogout = () => {
     localStorage.removeItem('campusflow_user')
@@ -17,24 +17,26 @@ export default function Sidebar() {
   }
 
   return (
-    <aside className="sidebar">
+    <aside className="sidebar" style={{ borderRight: '1px solid #3b82f640' }}>
       {/* Logo */}
       <div className="sidebar-logo">
-        <div className="sidebar-logo-icon">🎓</div>
-        <span className="sidebar-logo-text">CampusFlow</span>
+        <div className="sidebar-logo-icon" style={{ background: 'linear-gradient(135deg, #ef4444, #f59e0b)' }}>🛡️</div>
+        <span className="sidebar-logo-text" style={{ background: 'linear-gradient(90deg, #f87171, #fbbf24)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+          Admin Portal
+        </span>
       </div>
 
       {/* Navigation */}
       <nav className="sidebar-nav">
         <div style={{ fontSize: '0.68rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.8px', padding: '0 0.5rem', marginBottom: '0.4rem' }}>
-          Main Menu
+          Administration
         </div>
-        {navItems.map(item => (
+        {adminNavItems.map(item => (
           <NavLink
             key={item.to}
             to={item.to}
-            id={`nav-${item.label.toLowerCase()}`}
             className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}
+            style={({ isActive }) => isActive ? { color: '#f87171', border: '1px solid rgba(239,68,68,0.3)', background: 'rgba(239,68,68,0.1)' } : {}}
           >
             <span className="nav-icon">{item.icon}</span>
             <span>{item.label}</span>
@@ -44,18 +46,20 @@ export default function Sidebar() {
 
       {/* User Footer */}
       <div className="sidebar-footer">
-        <div className="user-chip">
-          <div className="user-avatar">{user.name.split(' ').map(n=>n[0]).join('')}</div>
+        <div className="user-chip" style={{ border: '1px solid rgba(239,68,68,0.2)' }}>
+          <div className="user-avatar" style={{ background: 'linear-gradient(135deg, #ef4444, #f59e0b)' }}>
+            {user.name.split(' ').map(n=>n[0]).join('')}
+          </div>
           <div>
             <div className="user-info-name">{user.name}</div>
-            <div className="user-info-role">{user.role.charAt(0).toUpperCase() + user.role.slice(1)} · CampusFlow</div>
+            <div className="user-info-role">CampusFlow Admin</div>
           </div>
         </div>
 
         {/* Logout */}
         <button
-          id="logout-btn"
           onClick={handleLogout}
+          className="btn-logout-sidebar"
           style={{
             display: 'flex', alignItems: 'center', gap: '0.65rem',
             width: '100%', marginTop: '0.5rem',
@@ -82,4 +86,3 @@ export default function Sidebar() {
     </aside>
   )
 }
-

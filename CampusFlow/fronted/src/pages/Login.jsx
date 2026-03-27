@@ -18,7 +18,14 @@ export default function Login() {
     // Simulate async auth
     setTimeout(() => {
       setLoading(false)
-      navigate('/dashboard')
+      const userData = { email: form.email, role: form.role, name: form.name || 'User' }
+      localStorage.setItem('campusflow_user', JSON.stringify(userData))
+      
+      if (form.role === 'admin') {
+        navigate('/admin/dashboard')
+      } else {
+        navigate('/dashboard')
+      }
     }, 1200)
   }
 
@@ -90,7 +97,7 @@ export default function Login() {
             </div>
 
             {/* Password */}
-            <div className="form-group" style={{ marginBottom: tab === 'signup' ? '1rem' : '1.5rem' }}>
+            <div className="form-group" style={{ marginBottom: '1rem' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <label className="form-label">Password</label>
                 {tab === 'login' && (
@@ -100,16 +107,14 @@ export default function Login() {
               <input id="auth-password" type="password" className="form-input" placeholder="••••••••" value={form.password} onChange={e => set('password', e.target.value)} style={{ width: '100%' }} />
             </div>
 
-            {/* Role (signup only) */}
-            {tab === 'signup' && (
-              <div className="form-group animate-fade-in" style={{ marginBottom: '1.5rem' }}>
-                <label className="form-label">I am a...</label>
-                <select id="auth-role" className="form-select" value={form.role} onChange={e => set('role', e.target.value)} style={{ width: '100%' }}>
-                  <option value="student">🎓 Student</option>
-                  <option value="faculty">👨‍🏫 Faculty</option>
-                </select>
-              </div>
-            )}
+            {/* Role */}
+            <div className="form-group animate-fade-in" style={{ marginBottom: '1.5rem' }}>
+              <label className="form-label">Log in as / I am a...</label>
+              <select id="auth-role" className="form-select" value={form.role} onChange={e => set('role', e.target.value)} style={{ width: '100%' }}>
+                <option value="student">🎓 Student</option>
+                <option value="admin">🛡️ Administrator</option>
+              </select>
+            </div>
 
             {/* Error */}
             {error && (

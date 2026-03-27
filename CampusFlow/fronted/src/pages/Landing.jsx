@@ -80,9 +80,9 @@ export default function Landing() {
             <button id="hero-get-started" className="btn btn-primary" style={{ padding: '0.75rem 2rem', fontSize: '0.95rem' }} onClick={() => navigate('/login')}>
               🚀 Get Started Free
             </button>
-            <button id="hero-dashboard-preview" className="btn btn-secondary" style={{ padding: '0.75rem 2rem', fontSize: '0.95rem' }} onClick={() => navigate('/dashboard')}>
+            {/* <button id="hero-dashboard-preview" className="btn btn-secondary" style={{ padding: '0.75rem 2rem', fontSize: '0.95rem' }} onClick={() => navigate('/dashboard')}>
               👀 Preview Dashboard
-            </button>
+            </button> */}
           </div>
         </div>
       </section>
