@@ -13,7 +13,10 @@ const INITIAL_TIMETABLE = {
 }
 
 export default function FacultyTimetable() {
-  const [timetable, setTimetable] = useState(INITIAL_TIMETABLE)
+  const [timetable, setTimetable] = useState(() => {
+    const saved = localStorage.getItem('campusflow_timetable')
+    return saved ? JSON.parse(saved) : INITIAL_TIMETABLE
+  })
   const [editing, setEditing] = useState(null) // "Day-Time"
   const [form, setForm] = useState({ subject: '', room: '' })
 
@@ -29,17 +32,18 @@ export default function FacultyTimetable() {
 
   const handleSave = () => {
     if (!editing) return
+    let updated = { ...timetable }
     if (!form.subject) {
       // Clear cell if saving empty
-      const updated = { ...timetable }
       delete updated[editing]
-      setTimetable(updated)
     } else {
-      setTimetable({
+      updated = {
         ...timetable,
         [editing]: { ...form }
-      })
+      }
     }
+    setTimetable(updated)
+    localStorage.setItem('campusflow_timetable', JSON.stringify(updated))
     setEditing(null)
   }
 
@@ -56,20 +60,20 @@ export default function FacultyTimetable() {
           <div style={{ background: 'var(--bg-card)', padding: '2rem', borderRadius: 12, width: '100%', maxWidth: 400, border: '1px solid var(--border)', boxShadow: '0 10px 30px rgba(0,0,0,0.5)' }}>
             <h3 style={{ marginTop: 0, color: '#10b981' }}>Edit Slot</h3>
             <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>{editing.split('-').join(' at ')}</p>
-            
+
             <div className="form-group" style={{ marginTop: '1rem' }}>
               <label className="form-label">Subject</label>
-              <input className="form-input" placeholder="e.g. Machine Learning" value={form.subject} onChange={e => setForm({...form, subject: e.target.value})} autoFocus />
+              <input className="form-input" placeholder="e.g. Machine Learning" value={form.subject} onChange={e => setForm({ ...form, subject: e.target.value })} autoFocus />
             </div>
-            
+
             <div className="form-group" style={{ marginTop: '1rem' }}>
               <label className="form-label">Room / Lab</label>
-              <input className="form-input" placeholder="e.g. Lab 4" value={form.room} onChange={e => setForm({...form, room: e.target.value})} />
+              <input className="form-input" placeholder="e.g. Lab 4" value={form.room} onChange={e => setForm({ ...form, room: e.target.value })} />
             </div>
 
             <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1.5rem' }}>
-               <button className="btn" style={{ flex: 1, background: '#10b981', color: '#fff', border: 'none' }} onClick={handleSave}>Save</button>
-               <button className="btn" style={{ flex: 1 }} onClick={() => setEditing(null)}>Cancel</button>
+              <button className="btn" style={{ flex: 1, background: '#10b981', color: '#fff', border: 'none' }} onClick={handleSave}>Save</button>
+              <button className="btn" style={{ flex: 1 }} onClick={() => setEditing(null)}>Cancel</button>
             </div>
           </div>
         </div>
@@ -96,11 +100,11 @@ export default function FacultyTimetable() {
                   const key = `${day}-${time}`
                   const cell = timetable[key]
                   return (
-                    <td 
-                      key={day} 
-                      style={{ 
-                        padding: '0.5rem', 
-                        borderRight: '1px solid var(--border)', 
+                    <td
+                      key={day}
+                      style={{
+                        padding: '0.5rem',
+                        borderRight: '1px solid var(--border)',
                         background: cell ? '#10b98110' : 'transparent',
                         cursor: 'pointer',
                         transition: 'background 0.2s',
@@ -109,10 +113,10 @@ export default function FacultyTimetable() {
                       }}
                       onClick={() => handleCellClick(day, time)}
                       onMouseEnter={(e) => {
-                         if(!cell) e.currentTarget.style.background = '#10b98105'
+                        if (!cell) e.currentTarget.style.background = '#10b98105'
                       }}
                       onMouseLeave={(e) => {
-                         if(!cell) e.currentTarget.style.background = 'transparent'
+                        if (!cell) e.currentTarget.style.background = 'transparent'
                       }}
                     >
                       {cell && (

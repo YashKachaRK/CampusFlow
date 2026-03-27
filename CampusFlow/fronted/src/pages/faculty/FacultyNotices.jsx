@@ -8,7 +8,7 @@ const INITIAL_NOTICES = [
 export default function FacultyNotices() {
   const [notices, setNotices] = useState(INITIAL_NOTICES)
   const [showForm, setShowForm] = useState(false)
-  const [form, setForm] = useState({ title: '', content: '' })
+  const [form, setForm] = useState({ title: '', content: '', file: null })
 
   const handlePost = () => {
     if (!form.title || !form.content) return
@@ -16,10 +16,12 @@ export default function FacultyNotices() {
       id: Date.now(),
       title: form.title,
       content: form.content,
-      date: new Date().toISOString().split('T')[0]
+      date: new Date().toISOString().split('T')[0],
+      fileName: form.file ? form.file.name : null,
+      fileUrl: form.file ? URL.createObjectURL(form.file) : null
     }
     setNotices([newNotice, ...notices])
-    setForm({ title: '', content: '' })
+    setForm({ title: '', content: '', file: null })
     setShowForm(false)
   }
 
@@ -46,6 +48,10 @@ export default function FacultyNotices() {
             <label className="form-label">Notice Content</label>
             <textarea className="form-input" placeholder="Type the announcement here..." rows="4" style={{ resize: 'vertical' }} value={form.content} onChange={e => setForm({...form, content: e.target.value})}></textarea>
           </div>
+          <div className="form-group" style={{ marginTop: '0.75rem' }}>
+            <label className="form-label">Attachment (Notes / PDF)</label>
+            <input type="file" className="form-input" style={{ padding: '0.4rem', background: 'var(--bg-secondary)' }} onChange={e => setForm({...form, file: e.target.files[0] || null})} />
+          </div>
           <button className="btn" style={{ background: '#10b981', color: '#fff', border: 'none', marginTop: '1rem', width: '100%' }} onClick={handlePost}>
             📢 Post to Students
           </button>
@@ -61,6 +67,13 @@ export default function FacultyNotices() {
               <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: '0.9rem', lineHeight: 1.5 }}>
                 {notice.content}
               </p>
+              {notice.fileName && (
+                <div style={{ marginTop: '0.75rem', padding: '0.5rem 0.75rem', background: '#10b98115', borderRadius: 8, display: 'inline-block' }}>
+                  <a href={notice.fileUrl} download={notice.fileName} style={{ color: '#10b981', textDecoration: 'none', fontSize: '0.8rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                    📎 {notice.fileName}
+                  </a>
+                </div>
+              )}
             </div>
             <button className="btn btn-sm btn-danger" onClick={() => handleDelete(notice.id)}>🗑 Delete</button>
           </div>

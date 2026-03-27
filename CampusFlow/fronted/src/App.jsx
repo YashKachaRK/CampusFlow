@@ -1,6 +1,5 @@
 import { Routes, Route } from 'react-router-dom'
 import Layout from './components/Layout'
-import AdminLayout from './components/AdminLayout'
 import ProtectedRoute from './components/ProtectedRoute'
 import Landing from './pages/Landing'
 import Login from './pages/Login'
@@ -8,6 +7,7 @@ import Dashboard from './pages/Dashboard'
 import Tasks from './pages/Tasks'
 import Schedule from './pages/Schedule'
 import Notices from './pages/Notices'
+import Timetable from './pages/Timetable'
 import Profile from './pages/Profile'
 
 
@@ -32,11 +32,10 @@ export default function App() {
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/tasks" element={<Tasks />} />
         <Route path="/schedule" element={<Schedule />} />
+        <Route path="/timetable" element={<Timetable />} />
         <Route path="/notices" element={<Notices />} />
         <Route path="/profile" element={<Profile />} />
       </Route>
-
-   
 
       {/* Faculty pages — with faculty layout */}
       <Route path="/faculty" element={<ProtectedRoute allowedRole="faculty"><FacultyLayout /></ProtectedRoute>}>

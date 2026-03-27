@@ -3,7 +3,8 @@ import { NavLink, useNavigate } from 'react-router-dom'
 const navItems = [
   { to: '/dashboard', icon: '🏠', label: 'Dashboard' },
   { to: '/tasks',     icon: '✅', label: 'Tasks' },
-  { to: '/schedule',  icon: '📅', label: 'Schedule' },
+  { to: '/schedule',  icon: '📅', label: 'Events Schedule' },
+  { to: '/timetable', icon: '🕰️', label: 'Timetable' },
   { to: '/notices',   icon: '📢', label: 'Notices' },
   { to: '/profile',   icon: '👤', label: 'Profile' },
 ]

@@ -2,11 +2,22 @@ import { useState, useEffect } from 'react';
 
 export default function Profile() {
   const [user, setUser] = useState({ name: '', email: '', role: '' })
+  const [isEditing, setIsEditing] = useState(false)
+  const [form, setForm] = useState({ name: '', email: '', role: '' })
   
   useEffect(() => {
     const data = JSON.parse(localStorage.getItem('campusflow_user'))
-    if (data) setUser(data)
+    if (data) {
+      setUser(data)
+      setForm(data)
+    }
   }, [])
+
+  const handleSave = () => {
+    setUser(form)
+    localStorage.setItem('campusflow_user', JSON.stringify(form))
+    setIsEditing(false)
+  }
 
   return (
     <div className="animate-fade-in" style={{ maxWidth: 800 }}>
@@ -28,15 +39,32 @@ export default function Profile() {
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
           <div className="form-group">
             <label className="form-label">Full Name</label>
-            <input className="form-input" value={user.name || ''} readOnly style={{ opacity: 0.8, cursor: 'not-allowed' }} />
+            <input 
+              className="form-input" 
+              value={isEditing ? form.name : (user.name || '')} 
+              onChange={e => setForm({...form, name: e.target.value})}
+              readOnly={!isEditing} 
+              style={{ opacity: isEditing ? 1 : 0.8, cursor: isEditing ? 'text' : 'not-allowed' }} 
+            />
           </div>
           <div className="form-group">
             <label className="form-label">Email Address</label>
-            <input className="form-input" value={user.email || ''} readOnly style={{ opacity: 0.8, cursor: 'not-allowed' }} />
+            <input 
+              className="form-input" 
+              value={isEditing ? form.email : (user.email || '')} 
+              onChange={e => setForm({...form, email: e.target.value})}
+              readOnly={!isEditing} 
+              style={{ opacity: isEditing ? 1 : 0.8, cursor: isEditing ? 'text' : 'not-allowed' }} 
+            />
           </div>
           <div className="form-group">
             <label className="form-label">Role</label>
-            <input className="form-input" value={user.role || ''} readOnly style={{ opacity: 0.8, cursor: 'not-allowed', textTransform: 'capitalize' }} />
+            <input 
+              className="form-input" 
+              value={user.role || ''} 
+              readOnly 
+              style={{ opacity: 0.8, cursor: 'not-allowed', textTransform: 'capitalize' }} 
+            />
           </div>
           <div className="form-group">
             <label className="form-label">Account Status</label>
@@ -45,8 +73,17 @@ export default function Profile() {
         </div>
         
         <div style={{ marginTop: '2rem', display: 'flex', gap: '1rem' }}>
-          <button className="btn btn-primary" style={{ padding: '0.6rem 1.2rem', opacity: 0.7, cursor: 'not-allowed' }}>Edit Profile</button>
-          <button className="btn" style={{ padding: '0.6rem 1.2rem', background: 'rgba(239,68,68,0.1)', color: '#ef4444', border: 'none', cursor: 'not-allowed', opacity: 0.7 }}>Change Password</button>
+          {isEditing ? (
+            <>
+              <button className="btn btn-primary" style={{ padding: '0.6rem 1.2rem' }} onClick={handleSave}>Save Changes</button>
+              <button className="btn" style={{ padding: '0.6rem 1.2rem', background: 'rgba(239,68,68,0.1)', color: '#ef4444', border: 'none' }} onClick={() => { setIsEditing(false); setForm(user); }}>Cancel</button>
+            </>
+          ) : (
+            <>
+              <button className="btn btn-primary" style={{ padding: '0.6rem 1.2rem' }} onClick={() => setIsEditing(true)}>Edit Profile</button>
+              <button className="btn" style={{ padding: '0.6rem 1.2rem', background: 'rgba(239,68,68,0.1)', color: '#ef4444', border: 'none', cursor: 'not-allowed', opacity: 0.7 }}>Change Password</button>
+            </>
+          )}
         </div>
       </div>
     </div>

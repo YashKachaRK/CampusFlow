@@ -1,4 +1,6 @@
 import { useState } from 'react'
+import jsPDF from 'jspdf'
+import 'jspdf-autotable'
 
 const PRIORITY_BADGE = {
   high:   <span className="badge badge-high">🔴 High</span>,
@@ -61,6 +63,49 @@ export default function Tasks() {
     })
     .filter(t => !dateFilter || t.date === dateFilter)
 
+  const handleExportCSV = () => {
+    const headers = ['Title', 'Subject', 'Priority', 'Status', 'Date']
+    const rows = tasks.map(t => [
+      `"${t.title.replace(/"/g, '""')}"`,
+      `"${t.subject || ''}"`,
+      t.priority,
+      t.done ? 'Completed' : 'Pending',
+      t.date
+    ])
+    const csvContent = "data:text/csv;charset=utf-8," + headers.join(",") + "\n" + rows.map(e => e.join(",")).join("\n")
+    const encodedUri = encodeURI(csvContent)
+    const link = document.createElement("a")
+    link.href = encodedUri
+    link.download = "student_tasks_export.csv"
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+  }
+
+  const handleExportPDF = () => {
+    const doc = new jsPDF()
+    doc.text("Student Data Summary: Tasks", 14, 15)
+    
+    const tableColumn = ["Task Title", "Subject", "Urgency", "Status", "Due Date"]
+    const tableRows = tasks.map(t => [
+       t.title,
+       t.subject || '--',
+       t.priority.toUpperCase(),
+       t.done ? 'Completed' : 'Pending',
+       t.date || '--'
+    ])
+    
+    doc.autoTable({
+      head: [tableColumn],
+      body: tableRows,
+      startY: 20,
+      theme: 'grid',
+      headStyles: { fillColor: [124, 58, 237] } // Primary purplish color
+    })
+    
+    doc.save(`tasks_export_${new Date().toISOString().split('T')[0]}.pdf`)
+  }
+
   return (
       <div>
         {/* Status Filter Tabs */}
@@ -83,13 +128,13 @@ export default function Tasks() {
         ))}
 
         {/* Date Filter */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginLeft: 'auto' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginLeft: 'auto', marginRight: '0.5rem' }}>
           <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600 }}>📅 Date:</span>
           <input
             id="date-filter-input"
             type="date"
             className="form-input"
-            style={{ padding: '0.35rem 0.6rem', fontSize: '0.8rem', width: 155 }}
+            style={{ padding: '0.35rem 0.6rem', fontSize: '0.8rem', width: 140 }}
             value={dateFilter}
             onChange={e => setDateFilter(e.target.value)}
           />
@@ -103,9 +148,17 @@ export default function Tasks() {
           )}
         </div>
 
-        <button id="add-task-btn" className="btn btn-primary" onClick={() => setShowForm(v => !v)}>
-          {showForm ? '✕ Cancel' : '＋ Add Task'}
-        </button>
+        <div style={{ display: 'flex', gap: '0.5rem' }}>
+          <button className="btn btn-secondary" style={{ padding: '0.5rem 0.8rem', fontSize: '0.8rem', borderColor: '#3b82f6', color: '#3b82f6' }} title="Export to PDF" onClick={handleExportPDF}>
+            📠 PDF
+          </button>
+          <button className="btn btn-secondary" style={{ padding: '0.5rem 0.8rem', fontSize: '0.8rem', borderColor: '#10b981', color: '#10b981' }} title="Export to CSV" onClick={handleExportCSV}>
+            📊 CSV
+          </button>
+          <button id="add-task-btn" className="btn btn-primary" onClick={() => setShowForm(v => !v)}>
+            {showForm ? '✕ Cancel' : '＋ Add Task'}
+          </button>
+        </div>
       </div>
 
       {/* Add Task Form */}
