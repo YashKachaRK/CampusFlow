@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import jsPDF from "jspdf";
-import "jspdf-autotable";
+import autoTable from "jspdf-autotable"; // 1. Updated Import
 
 const PRIORITY_BADGE = {
   high: <span className="badge badge-high">🔴 High</span>,
@@ -106,7 +106,7 @@ export default function Tasks() {
   };
   const toggle = async (id) => {
     try {
-      const res = await await fetch(
+      const res = await fetch(
         `http://localhost:5000/api/tasks/toggle/${id}`,
         {
           method: "PUT",
@@ -181,33 +181,39 @@ export default function Tasks() {
   };
 
   const handleExportPDF = () => {
-    const doc = new jsPDF();
-    doc.text("Student Data Summary: Tasks", 14, 15);
+    try {
+      const doc = new jsPDF();
+      doc.text("Student Data Summary: Tasks", 14, 15);
 
-    const tableColumn = [
-      "Task Title",
-      "Subject",
-      "Urgency",
-      "Status",
-      "Due Date",
-    ];
-    const tableRows = tasks.map((t) => [
-      t.title,
-      t.subject || "--",
-      t.priority.toUpperCase(),
-      t.done ? "Completed" : "Pending",
-      t.date || "--",
-    ]);
+      const tableColumn = [
+        "Task Title",
+        "Subject",
+        "Urgency",
+        "Status",
+        "Due Date",
+      ];
+      const tableRows = tasks.map((t) => [
+        t.title,
+        t.subject || "--",
+        t.priority.toUpperCase(),
+        t.done ? "Completed" : "Pending",
+        t.date || "--",
+      ]);
 
-    doc.autoTable({
-      head: [tableColumn],
-      body: tableRows,
-      startY: 20,
-      theme: "grid",
-      headStyles: { fillColor: [124, 58, 237] }, // Primary purplish color
-    });
+      // 2. Updated autoTable call
+      autoTable(doc, {
+        head: [tableColumn],
+        body: tableRows,
+        startY: 20,
+        theme: "grid",
+        headStyles: { fillColor: [124, 58, 237] }, // Primary purplish color
+      });
 
-    doc.save(`tasks_export_${new Date().toISOString().split("T")[0]}.pdf`);
+      doc.save(`tasks_export_${new Date().toISOString().split("T")[0]}.pdf`);
+    } catch (error) {
+      console.error("Error generating PDF: ", error);
+      alert("There was an error generating the PDF.");
+    }
   };
 
   return (

@@ -19,7 +19,7 @@ import FacultyStudents from './pages/faculty/FacultyStudents'
 import FacultyNotices from './pages/faculty/FacultyNotices'
 import FacultyEvents from './pages/faculty/FacultyEvents'
 import FacultyTimetable from './pages/faculty/FacultyTimetable'
-
+import ResetPassword from './pages/ResetPassword';
 export default function App() {
   return (
     <Routes>
@@ -45,6 +45,8 @@ export default function App() {
         <Route path="events" element={<FacultyEvents />} />
         <Route path="timetable" element={<FacultyTimetable />} />
       </Route>
+
+      <Route path="/reset-password/:token" element={<ResetPassword />} />
     </Routes>
   )
 }

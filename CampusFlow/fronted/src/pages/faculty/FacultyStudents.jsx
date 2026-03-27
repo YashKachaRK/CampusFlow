@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react'
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 const API_URL = 'http://localhost:5000/api/students';
 
@@ -69,16 +71,92 @@ export default function FacultyStudents() {
     }
   }
 
+  // --- EXPORT FUNCTIONS ---
+  const handleExportCSV = () => {
+    const headers = ["Name", "Email", "Role", "Course", "Year"];
+    const rows = students.map((s) => [
+      `"${s.name.replace(/"/g, '""')}"`,
+      `"${s.email}"`,
+      s.role || "student",
+      `"${s.course || ""}"`,
+      `"${s.year || ""}"`,
+    ]);
+    const csvContent =
+      "data:text/csv;charset=utf-8," +
+      headers.join(",") +
+      "\n" +
+      rows.map((e) => e.join(",")).join("\n");
+    
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.href = encodedUri;
+    link.download = "enrolled_students.csv";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const handleExportPDF = () => {
+    try {
+      const doc = new jsPDF();
+      doc.text("Enrolled Students Directory", 14, 15);
+
+      const tableColumn = ["Name", "Email", "Role", "Course", "Year"];
+      const tableRows = students.map((s) => [
+        s.name,
+        s.email,
+        (s.role || "student").toUpperCase(),
+        s.course || "--",
+        s.year || "--",
+      ]);
+
+      autoTable(doc, {
+        head: [tableColumn],
+        body: tableRows,
+        startY: 20,
+        theme: "grid",
+        headStyles: { fillColor: [16, 185, 129] }, // Matches the emerald green theme
+      });
+
+      doc.save(`students_export_${new Date().toISOString().split("T")[0]}.pdf`);
+    } catch (error) {
+      console.error("Error generating PDF: ", error);
+      alert("There was an error generating the PDF.");
+    }
+  };
+
   return (
     <div className="animate-fade-in">
-      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1.25rem' }}>
-        <button className="btn btn-primary" style={{ background: '#10b981', borderColor: '#10b981', color: '#fff', padding: '0.6rem 1.2rem', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }} onClick={() => {
-          setShowForm(v => !v)
-          if(!showForm) { 
-            setEditId(null)
-            setForm({ name: '', email: '', course: 'Computer Science', year: '1st Year' })
-          }
-        }}>
+      
+      {/* Header & Action Buttons */}
+      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem', marginBottom: '1.25rem' }}>
+        <button 
+          className="btn btn-secondary" 
+          style={{ padding: '0.6rem 1.2rem', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', border: '1px solid #10b981', color: '#10b981', background: 'transparent' }} 
+          title="Export to PDF"
+          onClick={handleExportPDF}
+        >
+          📠 PDF
+        </button>
+        <button 
+          className="btn btn-secondary" 
+          style={{ padding: '0.6rem 1.2rem', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', border: '1px solid #10b981', color: '#10b981', background: 'transparent' }} 
+          title="Export to CSV"
+          onClick={handleExportCSV}
+        >
+          📊 CSV
+        </button>
+        <button 
+          className="btn btn-primary" 
+          style={{ background: '#10b981', borderColor: '#10b981', color: '#fff', padding: '0.6rem 1.2rem', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }} 
+          onClick={() => {
+            setShowForm(v => !v)
+            if(!showForm) { 
+              setEditId(null)
+              setForm({ name: '', email: '', course: 'Computer Science', year: '1st Year' })
+            }
+          }}
+        >
           {showForm ? '✕ Cancel' : '＋ Add New Student'}
         </button>
       </div>
