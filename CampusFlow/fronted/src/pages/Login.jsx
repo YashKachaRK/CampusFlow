@@ -24,6 +24,8 @@ export default function Login() {
       
       if (form.role === 'admin') {
         navigate('/admin/dashboard')
+      } else if (form.role === 'faculty') {
+        navigate('/faculty/dashboard')
       } else {
         navigate('/dashboard')
       }
@@ -121,6 +123,7 @@ export default function Login() {
               <label className="form-label">Log in as / I am a...</label>
               <select id="auth-role" className="form-select" value={form.role} onChange={e => set('role', e.target.value)} style={{ width: '100%' }}>
                 <option value="student">🎓 Student</option>
+                <option value="faculty">👨‍🏫 Faculty</option>
                 <option value="admin">🛡️ Administrator</option>
               </select>
             </div>

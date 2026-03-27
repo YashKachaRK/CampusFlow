@@ -62,8 +62,8 @@ export default function Tasks() {
     .filter(t => !dateFilter || t.date === dateFilter)
 
   return (
-    <div>
-      {/* Status Filter Tabs */}
+      <div>
+        {/* Status Filter Tabs */}
       <div style={{ display: 'flex', gap: '0.65rem', marginBottom: '1rem', flexWrap: 'wrap', alignItems: 'center' }}>
         {[
           { key: 'all',     label: `All (${counts.total})`,         color: '#a78bfa' },
@@ -287,7 +287,7 @@ export default function Tasks() {
             <h2 style={{ marginTop: 0, marginBottom: '0.5rem', fontWeight: 700, fontSize: '1.4rem' }}>{viewingTask.title}</h2>
             
             <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem', alignItems: 'center' }}>
-              {PRIORITY_BADGE[viewingTask.priority]}
+              {PRIORITY_BADGE[viewingTask.priority]  }
               <span className={`badge ${viewingTask.done ? 'badge-low' : 'badge-medium'}`}>
                 {viewingTask.done ? '✓ Completed' : '⏳ Pending'}
               </span>

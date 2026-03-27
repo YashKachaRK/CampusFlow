@@ -10,11 +10,15 @@ import Schedule from './pages/Schedule'
 import Notices from './pages/Notices'
 import Profile from './pages/Profile'
 
-// Admin Pages
-import AdminDashboard from './pages/admin/AdminDashboard'
-import AdminNotices from './pages/admin/AdminNotices'
-import AdminEvents from './pages/admin/AdminEvents'
-import AdminUsers from './pages/admin/AdminUsers'
+
+
+// Faculty Pages
+import FacultyLayout from './components/FacultyLayout'
+import FacultyDashboard from './pages/faculty/FacultyDashboard'
+import FacultyStudents from './pages/faculty/FacultyStudents'
+import FacultyNotices from './pages/faculty/FacultyNotices'
+import FacultyEvents from './pages/faculty/FacultyEvents'
+import FacultyTimetable from './pages/faculty/FacultyTimetable'
 
 export default function App() {
   return (
@@ -38,6 +42,15 @@ export default function App() {
         <Route path="notices" element={<AdminNotices />} />
         <Route path="events" element={<AdminEvents />} />
         <Route path="users" element={<AdminUsers />} />
+      </Route>
+
+      {/* Faculty pages — with faculty layout */}
+      <Route path="/faculty" element={<ProtectedRoute allowedRole="faculty"><FacultyLayout /></ProtectedRoute>}>
+        <Route path="dashboard" element={<FacultyDashboard />} />
+        <Route path="students" element={<FacultyStudents />} />
+        <Route path="notices" element={<FacultyNotices />} />
+        <Route path="events" element={<FacultyEvents />} />
+        <Route path="timetable" element={<FacultyTimetable />} />
       </Route>
     </Routes>
   )
