@@ -19,40 +19,63 @@ export default function Login() {
     setError("");
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+
     if (!form.email || !form.password) {
       setError("Please fill in all required fields.");
       return;
     }
-    if (tab === "signup" && !form.name) {
-      setError("Please enter your full name.");
-      return;
-    }
-    if (tab === "signup" && form.password !== form.confirmPassword) {
-      setError("Passwords do not match.");
-      return;
-    }
-    setLoading(true);
-    // Simulate async auth
-    setTimeout(() => {
-      setLoading(false);
-      const userData = {
-        email: form.email,
-        role: form.role,
-        name: form.name || "User",
-      };
-      localStorage.setItem("campusflow_user", JSON.stringify(userData));
 
-      if (form.role === "admin") {
+    try {
+      setLoading(true);
+
+      const url =
+        tab === "login"
+          ? "http://localhost:5000/api/auth/login"
+          : "http://localhost:5000/api/auth/register";
+
+      const payload =
+        tab === "login"
+          ? { email: form.email, password: form.password }
+          : {
+              name: form.name,
+              email: form.email,
+              password: form.password,
+              role: form.role,
+            };
+
+      const res = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error);
+      }
+
+      // Save user
+      localStorage.setItem("campusflow_user", JSON.stringify(data.user));
+
+      // Redirect based on role
+      if (data.user.role === "admin") {
         navigate("/admin/dashboard");
-      } else if (form.role === "faculty") {
+      } else if (data.user.role === "faculty") {
         navigate("/faculty/dashboard");
       } else {
         navigate("/dashboard");
       }
-    }, 1200);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
   };
+
+ 
 
   return (
     <div
