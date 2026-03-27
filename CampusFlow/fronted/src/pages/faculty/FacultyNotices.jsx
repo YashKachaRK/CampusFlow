@@ -1,33 +1,60 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react';
+import axios from 'axios';
 
-const INITIAL_NOTICES = [
-  { id: 1, title: 'Final Year Project Submissions', date: '2026-03-25', content: 'All final year students must submit their project proposals by next week.' },
-  { id: 2, title: 'Lab Maintenance', date: '2026-03-26', content: 'Computer Lab 3 will be closed for maintenance tomorrow between 2pm and 5pm.' },
-]
+
 
 export default function FacultyNotices() {
-  const [notices, setNotices] = useState(INITIAL_NOTICES)
-  const [showForm, setShowForm] = useState(false)
-  const [form, setForm] = useState({ title: '', content: '', file: null })
+  const [notices, setNotices] = useState([]);
+  const [showForm, setShowForm] = useState(false);
+  const [form, setForm] = useState({ title: '', content: '', file: null });
 
-  const handlePost = () => {
-    if (!form.title || !form.content) return
-    const newNotice = {
-      id: Date.now(),
-      title: form.title,
-      content: form.content,
-      date: new Date().toISOString().split('T')[0],
-      fileName: form.file ? form.file.name : null,
-      fileUrl: form.file ? URL.createObjectURL(form.file) : null
+  const fetchNotices = async () => {
+    try {
+      const res = await axios.get('http://localhost:5000/api/notices');
+      setNotices(res.data);
+    } catch (err) {
+      console.error(err);
     }
-    setNotices([newNotice, ...notices])
-    setForm({ title: '', content: '', file: null })
-    setShowForm(false)
-  }
+  };
 
-  const handleDelete = (id) => {
-    setNotices(notices.filter(n => n.id !== id))
-  }
+  useEffect(() => {
+    fetchNotices();
+  }, []);
+
+  const handlePost = async () => {
+    if (!form.title || !form.content) return;
+
+    let fileData = null;
+    if (form.file) {
+      fileData = {
+        file_name: form.file.name,
+        file_url: URL.createObjectURL(form.file)
+      };
+    }
+
+    try {
+      const res = await axios.post('http://localhost:5000/api/notices', {
+        title: form.title,
+        description: form.content,
+        ...fileData,
+        faculty_id: 1 // dynamic faculty id
+      });
+      setNotices([res.data, ...notices]);
+      setForm({ title: '', content: '', file: null });
+      setShowForm(false);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleDelete = async (id) => {
+    try {
+      await axios.delete(`http://localhost:5000/api/notices/${id}`);
+      setNotices(notices.filter(n => n.id !== id));
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   return (
     <div className="animate-fade-in">
