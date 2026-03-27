@@ -311,7 +311,7 @@ export default function Tasks() {
                     <div style={{ fontWeight: 500, color: '#a78bfa', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
                       {viewingTask.fileUrl ? (
                         <a href={viewingTask.fileUrl} download={viewingTask.fileName} style={{ color: 'inherit', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.3rem', cursor: 'pointer', background: 'rgba(124,58,237,0.1)', padding: '0.2rem 0.6rem', borderRadius: 20 }}>
-                          ⬇️ {viewingTask.fileName}
+                           {viewingTask.fileName}
                         </a>
                       ) : (
                         <span>📎 {viewingTask.fileName}</span>
