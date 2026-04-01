@@ -1,229 +1,135 @@
-Perfect — now you have the **problem + full hackathon rubric** 👍
-Let me simplify this into a **clear action plan so you can WIN** 🏆
+# 🎓 CampusFlow
 
----
+CampusFlow is a comprehensive student and faculty management web application designed to streamline academic workflows, scheduling, tasks, and communication within an educational institution. 
 
-# 🧠 1. What Judges Actually Want (Decoded)
+With distinct portals for Students and Faculty members, CampusFlow brings everything you need into a single, centralized platform—combining beautiful, responsive UI with a secure and robust backend.
 
-From your rubric, judges are checking:
+## ✨ Features
 
-### ✅ 1. Problem Understanding
+### 👨‍🎓 Student Portal
+- **Personalized Dashboard:** Overview of current tasks, upcoming schedules, and recent notices.
+- **Task Management:** Add, update, view, and delete personal academic tasks.
+- **Schedule tracking:** Calendar-based schedule tracking for classes and events.
+- **Timetable:** Interactive academic timetable viewer.
+- **Notices & Announcements:** Stay updated with the latest faculty announcements.
+- **Profile Management:** Manage account details and preferences.
 
-👉 You must clearly show:
+### 👨‍🏫 Faculty Portal
+- **Faculty Dashboard:** Snapshot of classes, active students, and recent notices.
+- **Student Management:** View and manage student directories and profiles.
+- **Notice Board Admin:** Create, edit, publish, and delete global or class-specific notices.
+- **Event Scheduling:** Schedule institution-wide or class-wise academic events.
+- **Timetable Management:** Organize and manage class timetables.
 
-* Why students need this
-* How your app solves it
+### 🔐 Security & Auth
+- **Role-Based Access Control (RBAC):** Distinct route protections and authentication flows for Students and Faculty.
+- **Secure Authentication:** JWT-based secure login and signup processes.
+- **Password Recovery:** Secure password reset functionality via email.
 
-💬 Say:
+## 📦 Libraries & Technologies Used
 
-> Students struggle to manage tasks, schedules, and notices separately. Our app brings everything into one platform with priority-based tracking.
+### Frontend (React/Vite)
 
----
-
-### ✅ 2. Architecture (VERY IMPORTANT)
-
-👉 They will check:
-
-* Clean folder structure
-* MVC (backend) + component-based (frontend)
-
-✔ You already did backend MVC → GOOD
-✔ Next: React components
-
----
-
-### ✅ 3. Functionality
-
-👉 Must work:
-
-* Add Task ✅
-* View Task ✅
-* Delete Task ✅
-* Add Event ✅
-
-❌ No crashes
-
----
-
-### ✅ 4. UI/UX
-
-👉 Judges LOVE:
-
-* Clean layout
-* Simple navigation
-* Priority colors
-
----
-
-### ✅ 5. Innovation
-
-👉 Add at least ONE:
-
-* Filters ⭐
-* Priority highlight ⭐
-* Dashboard summary ⭐
-
----
-
-# 🚀 2. EXACT BUILD PLAN (Follow This)
-
-## ⏱️ T0 – T+4 (NOW)
-
-👉 Goal: Setup + UI skeleton
-
-### Do:
-
-* Backend running ✅ (you started)
-* React app create:
-
+**Installation Command:**
 ```bash
-npx create-react-app frontend
-cd frontend
-npm install axios react-router-dom
+npm install @fullcalendar/daygrid @fullcalendar/interaction @fullcalendar/react @fullcalendar/timegrid @tailwindcss/vite axios jspdf jspdf-autotable lucide-react react react-dom react-router-dom
+npm install -D @eslint/js @types/react @types/react-dom @vitejs/plugin-react autoprefixer eslint eslint-plugin-react-hooks eslint-plugin-react-refresh globals postcss tailwindcss vite
 ```
 
-### Pages:
+* **`react`** & **`react-dom`** (v19.2) - Core UI library.
+* **`react-router-dom`** (v7.13) - Handling application routing and route protection.
+* **`vite`** & **`@vitejs/plugin-react`** - Blazing fast frontend build tool.
+* **`tailwindcss`** & **`@tailwindcss/vite`** (v4.2) - Utility-first styling framework.
+* **`axios`** - Promise-based HTTP client for API requests.
+* **`@fullcalendar/react`** (with `daygrid`, `timegrid`, `interaction`) - Interactive scheduling and calendar views.
+* **`jspdf`** & **`jspdf-autotable`** - Client-side PDF generation for reports or tables.
+* **`lucide-react`** - Clean and modern SVG icon pack.
 
-* Home
-* Tasks
-* Schedule
-* Notices
+### Backend (Node.js/Express)
 
----
+**Installation Command:**
+```bash
+npm install bcrypt cors crypto dotenv express jsonwebtoken mongoose nodemailer pg
+npm install -D nodemon
+```
 
-## ⏱️ T+8 (CORE FEATURES)
+* **`express`** - Fast, unopinionated, minimalist web framework for Node.js.
+* **`mongoose`** - Elegant MongoDB object modeling for Node.js.
+* **`pg`** - Non-blocking PostgreSQL client for Node.js.
+* **`jsonwebtoken`** - Implementation of JSON Web Tokens for authentication and session management.
+* **`bcrypt`** - Library for securely hashing passwords.
+* **`nodemailer`** - Easy-to-use module for sending emails (e.g., password recovery).
+* **`cors`** - Middleware for enabling Cross-Origin Resource Sharing.
+* **`dotenv`** - Loads environment variables from a `.env` file.
+* **`crypto`** - Native Node.js module used for cryptographic functionalities.
 
-👉 Goal: CRUD working
+## 🚀 Getting Started
 
-### Must Complete:
+### Prerequisites
+Make sure you have [Node.js](https://nodejs.org/) and [Git](https://git-scm.com/) installed on your machine.
+You will also need a running instance of MongoDB / PostgreSQL depending on your database configuration.
 
-* Add Task
-* Show Task List
-* Delete Task
+### 1. Clone the repository
+```bash
+git clone https://github.com/your-username/CampusFlow.git
+cd CampusFlow
+```
 
-👉 THIS ALONE = PASS LEVEL PROJECT ✅
+### 2. Backend Setup
+1. Navigate to the backend directory:
+   ```bash
+   cd backed
+   ```
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+3. Create a `.env` file in the `backed` directory and add your environment variables (e.g., `PORT`, `MONGO_URI` / `DB_URI`, `JWT_SECRET`, email credentials).
+4. Start the backend server:
+   ```bash
+   npm run dev
+   ```
 
----
+### 3. Frontend Setup
+1. Open a new terminal and navigate to the frontend directory:
+   ```bash
+   cd fronted
+   ```
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+3. Start the Vite development server:
+   ```bash
+   npm run dev
+   ```
 
-## ⏱️ T+16 (WINNING LEVEL)
+### 4. Visit the App
+Open your browser and navigate to `http://localhost:5173` (or the port specified by Vite) to view the application!
 
-👉 Add:
+## 📂 Project Structure
 
-### 🔥 Filters
+```
+CampusFlow/
+├── backed/                 # Express backend application
+│   ├── server.js           # Server entry point
+│   ├── package.json        
+│   └── ...                 # Controllers, Models, Routes, Middleware
+│
+└── fronted/                # React Vite frontend application
+    ├── src/
+    │   ├── components/     # Reusable UI components (Sidebar, Layouts, etc.)
+    │   ├── pages/          # Full page views (Student and Faculty portals)
+    │   ├── App.jsx         # Main application routing and auth guards
+    │   └── main.jsx        # React DOM entry point
+    └── package.json
+```
 
-* By date
-* By category
+## 🤝 Contributing
 
-### 🔥 Priority UI
+Contributions, issues, and feature requests are welcome!
+Feel free to check [issues page](https://github.com/your-username/CampusFlow/issues) if you want to contribute.
 
-* 🔴 High
-* 🟡 Medium
-* 🟢 Low
+## 📝 License
 
----
-
-## ⏱️ T+24 (FINAL TOUCH)
-
-👉 Add:
-
-* Better UI
-* Small animations
-* Clean dashboard
-
----
-
-# 🏗️ 3. What You MUST Show in Demo
-
-## 🖥️ Demo Flow (IMPORTANT)
-
-### 1. Dashboard
-
-* Show summary
-
-### 2. Tasks
-
-* Add task
-* Show list
-* Delete task
-
-### 3. Priority
-
-* Show color difference
-
-### 4. Filter
-
-* Show filtering working
-
----
-
-# 🎤 4. READY-MADE ANSWERS (Use in Q&A)
-
-## ❓ Why this project?
-
-> Students often use multiple tools. Our solution centralizes everything into one platform.
-
----
-
-## ❓ Why this tech stack?
-
-> We used React for dynamic UI, Node.js for APIs, and PostgreSQL for structured data handling.
-
----
-
-## ❓ What makes your app unique?
-
-> Priority-based visualization and filtering help students focus on urgent tasks efficiently.
-
----
-
-## ❓ Future improvements?
-
-> Notifications, AI suggestions, and mobile app version.
-
----
-
-# ⚡ 5. IMPORTANT HACKATHON RULE (AI PART)
-
-👉 You MUST understand your code
-
-Judges may ask:
-
-* “Change this field”
-* “Add new API”
-* “Explain this function”
-
-❌ If you can’t → marks down
-
----
-
-# 🏆 6. WINNING STRATEGY
-
-👉 Focus on:
-
-* Working app > fancy app
-* Clean UI > complex UI
-* Few features > buggy features
-
----
-
-# 🚀 FINAL ADVICE
-
-👉 If time is less:
-
-* Build **Tasks perfectly**
-* Add **basic Events**
-* Simple **Notices**
-
-👉 Don’t overbuild ❌
-
----
-
-# 💬 NEXT STEP
-
-Tell me:
-
-👉 **“build frontend step by step”**
-👉 **“connect postgres backend to react”**
-👉 **“give full working project code”**
-
-I’ll guide you LIVE like a mentor 🚀🔥
+This project is [ISC](https://opensource.org/licenses/ISC) licensed.
